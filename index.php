@@ -1,0 +1,1009 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CPU Scheduling Simulator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+        }
+
+        .sidebar {
+            width: 250px;
+            background: rgba(102, 126, 234, 0.95);
+            padding: 20px;
+            color: white;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+        }
+
+        .sidebar h2 {
+            margin-bottom: 30px;
+            font-size: 24px;
+        }
+
+        .nav-btn {
+            width: 100%;
+            padding: 15px;
+            margin-bottom: 10px;
+            border: none;
+            border-radius: 8px;
+            background: rgba(255,255,255,0.1);
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: left;
+            font-size: 16px;
+        }
+
+        .nav-btn:hover {
+            background: rgba(255,255,255,0.2);
+            transform: translateX(5px);
+        }
+
+        .nav-btn.active {
+            background: rgba(255,255,255,0.3);
+            font-weight: bold;
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 40px;
+            overflow-y: auto;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .card h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        th {
+            background: #f0f0f0;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            color: #333;
+            border-bottom: 2px solid #667eea;
+        }
+
+        td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        input[type="number"] {
+            width: 80px;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #a78bfa;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #9270f0;
+        }
+
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+            padding: 8px 12px;
+            font-size: 14px;
+        }
+
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+
+        .gantt-chart {
+            display: flex;
+            margin: 20px 0;
+            min-height: 80px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            overflow-x: auto;
+        }
+
+        .gantt-block {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-weight: bold;
+            border-right: 2px solid white;
+            min-width: 60px;
+            position: relative;
+        }
+
+        .gantt-time {
+            position: absolute;
+            bottom: -25px;
+            font-size: 12px;
+            color: #666;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 25px;
+            border-radius: 12px;
+            color: white;
+            text-align: center;
+        }
+
+        .stat-card h3 {
+            font-size: 14px;
+            margin-bottom: 10px;
+            opacity: 0.9;
+        }
+
+        .stat-card .value {
+            font-size: 36px;
+            font-weight: bold;
+        }
+
+        .page {
+            display: none;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        .note {
+            background: #f0f4ff;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            border-left: 4px solid #667eea;
+        }
+
+        .note strong {
+            color: #667eea;
+        }
+
+        /* Landing Page Styles */
+        .landing-hero {
+            text-align: center;
+            padding: 60px 20px;
+            background: white;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .landing-title {
+            font-size: 48px;
+            color: #667eea;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
+        .landing-subtitle {
+            font-size: 20px;
+            color: #888;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .feature-card {
+            background: linear-gradient(135deg, #f0f4ff 0%, #e9ecff 100%);
+            padding: 25px;
+            border-radius: 12px;
+            text-align: center;
+            border: 2px solid #e0e7ff;
+            transition: all 0.3s;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.2);
+        }
+
+        .feature-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+
+        .feature-card h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 20px;
+        }
+
+        .feature-card p {
+            color: #666;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .credits-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-align: center;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .credits-content {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .credit-name {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h2>Algorithms</h2>
+        <button class="nav-btn active" onclick="showPage('landing')">
+            <div>🏠 Home</div>
+            <small style="opacity: 0.8;">Landing Page</small>
+        </button>
+        <button class="nav-btn" onclick="showPage('fcfs')">
+            <div>FCFS</div>
+            <small style="opacity: 0.8;">First Come First Served</small>
+        </button>
+        <button class="nav-btn" onclick="showPage('srtf')">
+            <div>SRTF</div>
+            <small style="opacity: 0.8;">Shortest Remaining Time First</small>
+        </button>
+        <button class="nav-btn" onclick="showPage('priority')">
+            <div>Priority</div>
+            <small style="opacity: 0.8;">Priority Scheduling</small>
+        </button>
+    </div>
+
+    <div class="main-content">
+        <div class="container">
+            <!-- Landing Page -->
+            <div id="landing-page" class="page active">
+                <div class="landing-hero">
+                    <h1 class="landing-title">CPU Scheduling Simulator</h1>
+                    <p class="landing-subtitle">Interactive Web-Based Process Scheduling Tool</p>
+                </div>
+
+                <div class="card">
+                    <h2>Welcome!</h2>
+                    <p style="line-height: 1.8; color: #555; margin-bottom: 20px;">
+                        This web application simulates three fundamental CPU scheduling algorithms used in operating systems. 
+                        Understanding these algorithms is essential for optimizing process execution and system performance.
+                    </p>
+                    
+                    <div class="features-grid">
+                        <div class="feature-card">
+                            <div class="feature-icon">📊</div>
+                            <h3>FCFS</h3>
+                            <p>First Come First Served - Processes are executed in the order they arrive</p>
+                        </div>
+                        <div class="feature-card">
+                            <div class="feature-icon">⚡</div>
+                            <h3>SRTF</h3>
+                            <p>Shortest Remaining Time First - Preemptive scheduling based on remaining burst time</p>
+                        </div>
+                        <div class="feature-card">
+                            <div class="feature-icon">🎯</div>
+                            <h3>Priority</h3>
+                            <p>Priority Scheduling - Processes with higher priority execute first</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card credits-card">
+                    <h3 style="color: #ffffff; margin-bottom: 15px; text-align: center;">Submitted by:</h3>
+                    <div class="credits-content">
+                        <div class="credit-name">K33 || Ballesteros - Costanilla - Pamplona</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FCFS Page -->
+            <div id="fcfs-page" class="page">
+                <div class="header">
+                    <h1>First Come First Serve (FCFS)</h1>
+                    <p>Non-preemptive algorithm that processes tasks in order of arrival time</p>
+                    <p><strong>Formula:</strong> TAT = CT - AT, WT = TAT - BT</p>
+                </div>
+
+                <div class="card">
+                    <h2>Process Input</h2>
+                    <div class="btn-group">
+                        <button class="btn btn-primary" onclick="addProcessFCFS()">➕ Add Process</button>
+                        <button class="btn btn-secondary" onclick="resetFCFS()">🔄 Reset</button>
+                    </div>
+                    <table id="fcfs-table">
+                        <thead>
+                            <tr>
+                                <th>PID</th>
+                                <th>Arrival Time (AT)</th>
+                                <th>Burst Time (BT)</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="fcfs-tbody">
+                            <tr>
+                                <td>P1</td>
+                                <td><input type="number" value="0" min="0" class="arrival"></td>
+                                <td><input type="number" value="5" min="1" class="burst"></td>
+                                <td><button class="btn btn-danger" onclick="removeRow(this)">🗑️</button></td>
+                            </tr>
+                            <tr>
+                                <td>P2</td>
+                                <td><input type="number" value="1" min="0" class="arrival"></td>
+                                <td><input type="number" value="3" min="1" class="burst"></td>
+                                <td><button class="btn btn-danger" onclick="removeRow(this)">🗑️</button></td>
+                            </tr>
+                            <tr>
+                                <td>P3</td>
+                                <td><input type="number" value="2" min="0" class="arrival"></td>
+                                <td><input type="number" value="8" min="1" class="burst"></td>
+                                <td><button class="btn btn-danger" onclick="removeRow(this)">🗑️</button></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <button class="btn btn-primary" onclick="simulateFCFS()">▶️ Run Simulation</button>
+                </div>
+
+                <div id="fcfs-results" style="display: none;">
+                    <div class="card">
+                        <h2>Gantt Chart</h2>
+                        <div id="fcfs-gantt" class="gantt-chart"></div>
+                    </div>
+
+                    <div class="card">
+                        <h2>Results</h2>
+                        <table id="fcfs-results-table">
+                            <thead>
+                                <tr>
+                                    <th>PID</th>
+                                    <th>AT</th>
+                                    <th>BT</th>
+                                    <th>CT</th>
+                                    <th>TAT</th>
+                                    <th>WT</th>
+                                </tr>
+                            </thead>
+                            <tbody id="fcfs-results-tbody"></tbody>
+                        </table>
+                        
+                        <div class="stats-grid" id="fcfs-stats"></div>
+                        
+                        <div class="note">
+                            <strong>Legend:</strong> AT = Arrival Time, BT = Burst Time, CT = Completion Time, TAT = Turnaround Time, WT = Waiting Time
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SRTF Page -->
+            <div id="srtf-page" class="page">
+                <div class="header">
+                    <h1>Shortest Remaining Time First (SRTF)</h1>
+                    <p>Preemptive algorithm that selects the process with shortest remaining time</p>
+                    <p><strong>Formula:</strong> TAT = CT - AT, WT = TAT - BT</p>
+                </div>
+
+                <div class="card">
+                    <h2>Process Input</h2>
+                    <div class="btn-group">
+                        <button class="btn btn-primary" onclick="addProcessSRTF()">➕ Add Process</button>
+                        <button class="btn btn-secondary" onclick="resetSRTF()">🔄 Reset</button>
+                    </div>
+                    <table id="srtf-table">
+                        <thead>
+                            <tr>
+                                <th>PID</th>
+                                <th>Arrival Time (AT)</th>
+                                <th>Burst Time (BT)</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="srtf-tbody">
+                            <tr>
+                                <td>P1</td>
+                                <td><input type="number" value="0" min="0" class="arrival"></td>
+                                <td><input type="number" value="5" min="1" class="burst"></td>
+                                <td><button class="btn btn-danger" onclick="removeRow(this)">🗑️</button></td>
+                            </tr>
+                            <tr>
+                                <td>P2</td>
+                                <td><input type="number" value="1" min="0" class="arrival"></td>
+                                <td><input type="number" value="3" min="1" class="burst"></td>
+                                <td><button class="btn btn-danger" onclick="removeRow(this)">🗑️</button></td>
+                            </tr>
+                            <tr>
+                                <td>P3</td>
+                                <td><input type="number" value="2" min="0" class="arrival"></td>
+                                <td><input type="number" value="8" min="1" class="burst"></td>
+                                <td><button class="btn btn-danger" onclick="removeRow(this)">🗑️</button></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <button class="btn btn-primary" onclick="simulateSRTF()">▶️ Run Simulation</button>
+                </div>
+
+                <div id="srtf-results" style="display: none;">
+                    <div class="card">
+                        <h2>Gantt Chart</h2>
+                        <div id="srtf-gantt" class="gantt-chart"></div>
+                    </div>
+
+                    <div class="card">
+                        <h2>Results</h2>
+                        <table id="srtf-results-table">
+                            <thead>
+                                <tr>
+                                    <th>PID</th>
+                                    <th>AT</th>
+                                    <th>BT</th>
+                                    <th>CT</th>
+                                    <th>TAT</th>
+                                    <th>WT</th>
+                                </tr>
+                            </thead>
+                            <tbody id="srtf-results-tbody"></tbody>
+                        </table>
+                        
+                        <div class="stats-grid" id="srtf-stats"></div>
+                        
+                        <div class="note">
+                            <strong>Legend:</strong> AT = Arrival Time, BT = Burst Time, CT = Completion Time, TAT = Turnaround Time, WT = Waiting Time
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Priority Page -->
+            <div id="priority-page" class="page">
+                <div class="header">
+                    <h1>Priority Scheduling</h1>
+                    <p>Non-preemptive algorithm where lower priority number = higher priority</p>
+                    <p><strong>Formula:</strong> TAT = WT + BT, WT[0] = 0, WT[i] = WT[i-1] + BT[i-1]</p>
+                </div>
+
+                <div class="card">
+                    <h2>Process Input</h2>
+                    <div class="btn-group">
+                        <button class="btn btn-primary" onclick="addProcessPriority()">➕ Add Process</button>
+                        <button class="btn btn-secondary" onclick="resetPriority()">🔄 Reset</button>
+                    </div>
+                    <table id="priority-table">
+                        <thead>
+                            <tr>
+                                <th>PID</th>
+                                <th>Burst Time (BT)</th>
+                                <th>Priority</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="priority-tbody">
+                            <tr>
+                                <td>P1</td>
+                                <td><input type="number" value="5" min="1" class="burst"></td>
+                                <td><input type="number" value="2" min="1" class="priority"></td>
+                                <td><button class="btn btn-danger" onclick="removeRow(this)">🗑️</button></td>
+                            </tr>
+                            <tr>
+                                <td>P2</td>
+                                <td><input type="number" value="3" min="1" class="burst"></td>
+                                <td><input type="number" value="1" min="1" class="priority"></td>
+                                <td><button class="btn btn-danger" onclick="removeRow(this)">🗑️</button></td>
+                            </tr>
+                            <tr>
+                                <td>P3</td>
+                                <td><input type="number" value="8" min="1" class="burst"></td>
+                                <td><input type="number" value="3" min="1" class="priority"></td>
+                                <td><button class="btn btn-danger" onclick="removeRow(this)">🗑️</button></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <button class="btn btn-primary" onclick="simulatePriority()">▶️ Run Simulation</button>
+                </div>
+
+                <div id="priority-results" style="display: none;">
+                    <div class="card">
+                        <h2>Gantt Chart</h2>
+                        <div id="priority-gantt" class="gantt-chart"></div>
+                    </div>
+
+                    <div class="card">
+                        <h2>Results</h2>
+                        <table id="priority-results-table">
+                            <thead>
+                                <tr>
+                                    <th>PID</th>
+                                    <th>BT</th>
+                                    <th>Priority</th>
+                                    <th>TAT</th>
+                                    <th>WT</th>
+                                </tr>
+                            </thead>
+                            <tbody id="priority-results-tbody"></tbody>
+                        </table>
+                        
+                        <div class="stats-grid" id="priority-stats"></div>
+                        
+                        <div class="note">
+                            <strong>Legend:</strong> BT = Burst Time, TAT = Turnaround Time, WT = Waiting Time
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const colors = ['#9333ea', '#a855f7', '#c084fc', '#e879f9', '#d946ef', '#a78bfa', '#8b5cf6', '#7c3aed'];
+        let processCounterFCFS = 4;
+        let processCounterSRTF = 4;
+        let processCounterPriority = 4;
+
+        function showPage(page) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+            
+            document.getElementById(page + '-page').classList.add('active');
+            event.target.closest('.nav-btn').classList.add('active');
+            
+            // Scroll to top when changing pages
+            document.querySelector('.main-content').scrollTop = 0;
+        }
+
+        function addProcessFCFS() {
+            const tbody = document.getElementById('fcfs-tbody');
+            const row = tbody.insertRow();
+            row.innerHTML = `
+                <td>P${processCounterFCFS}</td>
+                <td><input type="number" value="0" min="0" class="arrival"></td>
+                <td><input type="number" value="1" min="1" class="burst"></td>
+                <td><button class="btn btn-danger" onclick="removeRow(this)">🗑️</button></td>
+            `;
+            processCounterFCFS++;
+        }
+
+        function addProcessSRTF() {
+            const tbody = document.getElementById('srtf-tbody');
+            const row = tbody.insertRow();
+            row.innerHTML = `
+                <td>P${processCounterSRTF}</td>
+                <td><input type="number" value="0" min="0" class="arrival"></td>
+                <td><input type="number" value="1" min="1" class="burst"></td>
+                <td><button class="btn btn-danger" onclick="removeRow(this)">🗑️</button></td>
+            `;
+            processCounterSRTF++;
+        }
+
+        function addProcessPriority() {
+            const tbody = document.getElementById('priority-tbody');
+            const row = tbody.insertRow();
+            row.innerHTML = `
+                <td>P${processCounterPriority}</td>
+                <td><input type="number" value="1" min="1" class="burst"></td>
+                <td><input type="number" value="1" min="1" class="priority"></td>
+                <td><button class="btn btn-danger" onclick="removeRow(this)">🗑️</button></td>
+            `;
+            processCounterPriority++;
+        }
+
+        function removeRow(btn) {
+            btn.closest('tr').remove();
+        }
+
+        function resetFCFS() {
+            document.getElementById('fcfs-tbody').innerHTML = `
+                <tr>
+                    <td>P1</td>
+                    <td><input type="number" value="0" min="0" class="arrival"></td>
+                    <td><input type="number" value="5" min="1" class="burst"></td>
+                    <td><button class="btn btn-danger" onclick="removeRow(this)">🗑️</button></td>
+                </tr>
+                <tr>
+                    <td>P2</td>
+                    <td><input type="number" value="1" min="0" class="arrival"></td>
+                    <td><input type="number" value="3" min="1" class="burst"></td>
+                    <td><button class="btn btn-danger" onclick="removeRow(this)">🗑️</button></td>
+                </tr>
+                <tr>
+                    <td>P3</td>
+                    <td><input type="number" value="2" min="0" class="arrival"></td>
+                    <td><input type="number" value="8" min="1" class="burst"></td>
+                    <td><button class="btn btn-danger" onclick="removeRow(this)">🗑️</button></td>
+                </tr>
+            `;
+            document.getElementById('fcfs-results').style.display = 'none';
+            processCounterFCFS = 4;
+        }
+
+        function resetSRTF() {
+            document.getElementById('srtf-tbody').innerHTML = `
+                <tr>
+                    <td>P1</td>
+                    <td><input type="number" value="0" min="0" class="arrival"></td>
+                    <td><input type="number" value="5" min="1" class="burst"></td>
+                    <td><button class="btn btn-danger" onclick="removeRow(this)">🗑️</button></td>
+                </tr>
+                <tr>
+                    <td>P2</td>
+                    <td><input type="number" value="1" min="0" class="arrival"></td>
+                    <td><input type="number" value="3" min="1" class="burst"></td>
+                    <td><button class="btn btn-danger" onclick="removeRow(this)">🗑️</button></td>
+                </tr>
+                <tr>
+                    <td>P3</td>
+                    <td><input type="number" value="2" min="0" class="arrival"></td>
+                    <td><input type="number" value="8" min="1" class="burst"></td>
+                    <td><button class="btn btn-danger" onclick="removeRow(this)">🗑️</button></td>
+                </tr>
+            `;
+            document.getElementById('srtf-results').style.display = 'none';
+            processCounterSRTF = 4;
+        }
+
+        function resetPriority() {
+            document.getElementById('priority-tbody').innerHTML = `
+                <tr>
+                    <td>P1</td>
+                    <td><input type="number" value="5" min="1" class="burst"></td>
+                    <td><input type="number" value="2" min="1" class="priority"></td>
+                    <td><button class="btn btn-danger" onclick="removeRow(this)">🗑️</button></td>
+                </tr>
+                <tr>
+                    <td>P2</td>
+                    <td><input type="number" value="3" min="1" class="burst"></td>
+                    <td><input type="number" value="1" min="1" class="priority"></td>
+                    <td><button class="btn btn-danger" onclick="removeRow(this)">🗑️</button></td>
+                </tr>
+                <tr>
+                    <td>P3</td>
+                    <td><input type="number" value="8" min="1" class="burst"></td>
+                    <td><input type="number" value="3" min="1" class="priority"></td>
+                    <td><button class="btn btn-danger" onclick="removeRow(this)">🗑️</button></td>
+                </tr>
+            `;
+            document.getElementById('priority-results').style.display = 'none';
+            processCounterPriority = 4;
+        }
+
+        function simulateFCFS() {
+            const rows = document.querySelectorAll('#fcfs-tbody tr');
+            const processes = [];
+            
+            rows.forEach(row => {
+                const pid = row.cells[0].textContent;
+                const arrival = parseInt(row.querySelector('.arrival').value);
+                const burst = parseInt(row.querySelector('.burst').value);
+                processes.push({ pid, arrival, burst });
+            });
+
+            processes.sort((a, b) => a.arrival - b.arrival);
+
+            let currentTime = 0;
+            const results = [];
+            const gantt = [];
+
+            processes.forEach(proc => {
+                if (currentTime < proc.arrival) {
+                    currentTime = proc.arrival;
+                }
+                const start = currentTime;
+                const completion = currentTime + proc.burst;
+                const turnaround = completion - proc.arrival;
+                const waiting = turnaround - proc.burst;
+
+                gantt.push({ pid: proc.pid, start, end: completion, duration: proc.burst });
+                results.push({
+                    pid: proc.pid,
+                    arrival: proc.arrival,
+                    burst: proc.burst,
+                    completion,
+                    turnaround,
+                    waiting
+                });
+
+                currentTime = completion;
+            });
+
+            displayResults('fcfs', results, gantt);
+        }
+
+        function simulateSRTF() {
+            const rows = document.querySelectorAll('#srtf-tbody tr');
+            const processes = [];
+            
+            rows.forEach(row => {
+                const pid = row.cells[0].textContent;
+                const arrival = parseInt(row.querySelector('.arrival').value);
+                const burst = parseInt(row.querySelector('.burst').value);
+                processes.push({ pid, arrival, burst, remaining: burst });
+            });
+
+            let time = 0;
+            const gantt = [];
+            const completionTimes = {};
+            let currentProcess = null;
+            let currentStart = 0;
+
+            const maxTime = Math.max(...processes.map(p => p.arrival + p.burst)) + 100;
+
+            while (processes.some(p => p.remaining > 0) && time < maxTime) {
+                const available = processes.filter(p => p.arrival <= time && p.remaining > 0);
+                
+                if (available.length === 0) {
+                    time++;
+                    continue;
+                }
+
+                const shortest = available.reduce((min, p) => p.remaining < min.remaining ? p : min);
+
+                if (currentProcess !== shortest.pid) {
+                    if (currentProcess !== null) {
+                        gantt.push({ pid: currentProcess, start: currentStart, end: time, duration: time - currentStart });
+                    }
+                    currentProcess = shortest.pid;
+                    currentStart = time;
+                }
+
+                shortest.remaining--;
+                time++;
+
+                if (shortest.remaining === 0) {
+                    gantt.push({ pid: shortest.pid, start: currentStart, end: time, duration: time - currentStart });
+                    completionTimes[shortest.pid] = time;
+                    currentProcess = null;
+                }
+            }
+
+            const results = processes.map(proc => {
+                const completion = completionTimes[proc.pid];
+                const turnaround = completion - proc.arrival;
+                const waiting = turnaround - proc.burst;
+                return {
+                    pid: proc.pid,
+                    arrival: proc.arrival,
+                    burst: proc.burst,
+                    completion,
+                    turnaround,
+                    waiting
+                };
+            });
+
+            displayResults('srtf', results, gantt);
+        }
+
+        function simulatePriority() {
+            const rows = document.querySelectorAll('#priority-tbody tr');
+            const processes = [];
+            
+            rows.forEach(row => {
+                const pid = row.cells[0].textContent;
+                const burst = parseInt(row.querySelector('.burst').value);
+                const priority = parseInt(row.querySelector('.priority').value);
+                processes.push({ pid, burst, priority });
+            });
+
+            processes.sort((a, b) => a.priority - b.priority);
+
+            let currentTime = 0;
+            const results = [];
+            const gantt = [];
+
+            processes.forEach((proc, index) => {
+                const start = currentTime;
+                const waiting = index === 0 ? 0 : results[index - 1].waiting + processes[index - 1].burst;
+                const turnaround = waiting + proc.burst;
+                const completion = currentTime + proc.burst;
+
+                gantt.push({ pid: proc.pid, start, end: completion, duration: proc.burst });
+                results.push({
+                    pid: proc.pid,
+                    burst: proc.burst,
+                    priority: proc.priority,
+                    waiting,
+                    turnaround
+                });
+
+                currentTime = completion;
+            });
+
+            displayResultsPriority(results, gantt);
+        }
+
+        function displayResults(algo, results, gantt) {
+            document.getElementById(`${algo}-results`).style.display = 'block';
+
+            // Display Gantt Chart
+            const ganttDiv = document.getElementById(`${algo}-gantt`);
+            ganttDiv.innerHTML = '';
+            gantt.forEach((block, idx) => {
+                const colorIdx = parseInt(block.pid.substring(1)) - 1;
+                const div = document.createElement('div');
+                div.className = 'gantt-block';
+                div.style.backgroundColor = colors[colorIdx % colors.length];
+                div.style.width = (block.duration * 50) + 'px';
+                div.innerHTML = `${block.pid}<span class="gantt-time">${block.start}</span>`;
+                if (idx === gantt.length - 1) {
+                    div.innerHTML += `<span class="gantt-time" style="left: auto; right: 0;">${block.end}</span>`;
+                }
+                ganttDiv.appendChild(div);
+            });
+
+            // Display Results Table
+            const tbody = document.getElementById(`${algo}-results-tbody`);
+            tbody.innerHTML = '';
+            results.forEach(proc => {
+                const row = tbody.insertRow();
+                row.innerHTML = `
+                    <td>${proc.pid}</td>
+                    <td>${proc.arrival}</td>
+                    <td>${proc.burst}</td>
+                    <td>${proc.completion}</td>
+                    <td>${proc.turnaround}</td>
+                    <td>${proc.waiting}</td>
+                `;
+            });
+
+            // Display Statistics
+            const avgTAT = (results.reduce((sum, p) => sum + p.turnaround, 0) / results.length).toFixed(2);
+            const avgWT = (results.reduce((sum, p) => sum + p.waiting, 0) / results.length).toFixed(2);
+            
+            const statsDiv = document.getElementById(`${algo}-stats`);
+            statsDiv.innerHTML = `
+                <div class="stat-card">
+                    <h3>Average Turnaround Time</h3>
+                    <div class="value">${avgTAT}</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Average Waiting Time</h3>
+                    <div class="value">${avgWT}</div>
+                </div>
+            `;
+        }
+
+        function displayResultsPriority(results, gantt) {
+            document.getElementById('priority-results').style.display = 'block';
+
+            // Display Gantt Chart
+            const ganttDiv = document.getElementById('priority-gantt');
+            ganttDiv.innerHTML = '';
+            gantt.forEach((block, idx) => {
+                const colorIdx = parseInt(block.pid.substring(1)) - 1;
+                const div = document.createElement('div');
+                div.className = 'gantt-block';
+                div.style.backgroundColor = colors[colorIdx % colors.length];
+                div.style.width = (block.duration * 50) + 'px';
+                div.innerHTML = `${block.pid}<span class="gantt-time">${block.start}</span>`;
+                if (idx === gantt.length - 1) {
+                    div.innerHTML += `<span class="gantt-time" style="left: auto; right: 0;">${block.end}</span>`;
+                }
+                ganttDiv.appendChild(div);
+            });
+
+            // Display Results Table
+            const tbody = document.getElementById('priority-results-tbody');
+            tbody.innerHTML = '';
+            results.forEach(proc => {
+                const row = tbody.insertRow();
+                row.innerHTML = `
+                    <td>${proc.pid}</td>
+                    <td>${proc.burst}</td>
+                    <td>${proc.priority}</td>
+                    <td>${proc.turnaround}</td>
+                    <td>${proc.waiting}</td>
+                `;
+            });
+
+            // Display Statistics
+            const avgTAT = (results.reduce((sum, p) => sum + p.turnaround, 0) / results.length).toFixed(2);
+            const avgWT = (results.reduce((sum, p) => sum + p.waiting, 0) / results.length).toFixed(2);
+            
+            const statsDiv = document.getElementById('priority-stats');
+            statsDiv.innerHTML = `
+                <div class="stat-card">
+                    <h3>Average Turnaround Time</h3>
+                    <div class="value">${avgTAT}</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Average Waiting Time</h3>
+                    <div class="value">${avgWT}</div>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>
